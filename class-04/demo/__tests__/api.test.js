@@ -1,44 +1,51 @@
 'use strict';
-require('dotenv').config();
 const { server } = require('../src/server.js');
 const superTest = require('supertest');
-
+const request = superTest(server);
 const mongoose = require('mongoose');
-mongoose.connect(process.env.MONGODB_TESTING_URI, {
+require('dotenv').config();
+
+mongoose.connect(process.env.MONGOOSE_TEST_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-}, () => {
-  mongoose.connection.db.dropDatabase();
+}, async () => {// delete everything from db after tests
+  await mongoose.connection.db.dropDatabase();
 });
-const request = superTest(server);
 
 let id;
 describe('api server', () => {
-  afterAll(() => {
-    mongoose.connection.close()
+  afterAll(() => {// we need to close the connection after tests
+    mongoose.connection.close();
   });
 
-  it('should be able to create a person on POST /person', async () => {
-    const obj = {
-      name: 'test',
-      role: 'test',
-    };
-    const response = await request.post('/api/v1/person').send(obj);
+  it('should create a new person using post request', async () => {
+    //arrange
+    let person = {
+      name: 'Ahmad',
+      role: 'student'
+    }
+    //act
+    const response = await request.post('/api/v1/person').send(person);
+    //assert
     expect(response.status).toEqual(201);
-    expect(response.body.name).toEqual('test');
+    expect(response.body.name).toEqual('Ahmad');
+    expect(response.body.role).toEqual('student');
+    expect(response.body._id.length).toBeGreaterThan(0);
+
     id = response.body._id;
   });
-  it('should be able to update a person on PUT /person', async () => {
-    const response = await request.put(`/api/v1/person/${id}`).send({
-      name: 'test',
-      role: 'test',
-    });
+
+  it('should update a person using put request', async () => {
+    //arrange
+    let editPerson = {
+      name: 'Ahmad',//unique
+      role: 'instructor'
+    };
+    //act
+    const response = await request.put(`/api/v1/person/${id}`)
+      .send(editPerson);
+    //asert
     expect(response.status).toEqual(200);
-    expect(response.body.name).toEqual('test');
-  });
-  it('should be able to get a person on Get /person/:id', async () => {
-    const response = await request.get(`/api/v1/person/${id}`);
-    expect(response.status).toEqual(200);
-    expect(response.body.name).toEqual('test');
+    expect(response.body.role).toEqual('instructor');
   });
 });
