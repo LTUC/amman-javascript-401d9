@@ -1,21 +1,17 @@
 'use strict';
 
 const io = require('socket.io-client');
+const brainHost = 'http://localhost:3000';
+const connectionToBrain = io.connect(brainHost);
 
-let host = 'http://localhost:3000';
+const connectionToHealthSystem = io.connect(`${brainHost}/health-system`);
 
-const brainConnection = io.connect(host);
-const healthCareConnection = io.connect(`${host}/health-care-system`);
-
-// LISTENERS
-brainConnection.on('smell', handleSmell);
-healthCareConnection.on('covid-19', handleCovid);
-
-// EVENT HANDLERS
-function handleSmell(payload) {
+connectionToBrain.on('smell', smellHandler);
+function smellHandler(payload) {
     console.log(`I smell ${payload.scent}`);
 }
 
-function handleCovid(payload) {
-    console.log(`Fighting off ${payload.type}`)
+connectionToHealthSystem.on('covid-19', handelCovidVirus);
+function handelCovidVirus(payload) {
+    console.log(`Fighting off ${payload.type}`);
 }

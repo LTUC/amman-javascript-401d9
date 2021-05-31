@@ -1,32 +1,27 @@
 'use strict';
 
-const port = process.env.PORT || 3000;
-
-const io = require('socket.io')(port);
-
-const healthCareSystem = io.of('/health-care-system');
+const port = 3000;
+const io = require('socket.io')(port);// http://localhost:3000
+const healthSystem = io.of('/health-system');// http://localhost:3000/heath-system
 
 io.on('connection', (socket) => {
-    console.log('connected to brain :)', socket.id);
+    console.log('we are connected to the brain :)');
 
     socket.on('light', (payload) => {
-        console.log('light detected', payload);
+        console.log('the light is recieved in the brain ***');
         io.emit('brightness', payload);
     });
 
     socket.on('smell', (payload) => {
-        console.log('smell detected', payload);
+        console.log('the smell is now in the brain!!!');
         io.emit('smell', payload);
     });
 });
 
-healthCareSystem.on('connection', (socket) => {
-    console.log('health care connected!!!');
-    socket.on('virus', (payload) => {
-        healthCareSystem.emit('covid-19', payload);
-    })
+healthSystem.on('connection', (socket) => {
+    console.log('We are connected to the heath system');
 
-    socket.on('sugar', (payload) => {
-        healthCareSystem.emit('high-sugar', payload);
+    socket.on('virus', (payload) => {
+        healthSystem.emit('covid-19', payload);
     });
 });
