@@ -1,11 +1,11 @@
 'use strict';
 
 const client = require('socket.io-client');
-const socket = client.connect('http://localhost:3000/family');
+const socketConnection = client.connect('http://localhost:3000/family');
 
-socket.emit('getall');
+socketConnection.emit('get_tasks');
 
-socket.on('chore', message => {
-    console.log('I have to do this chore:', message.payload);
-    socket.emit('received', message);
+socketConnection.on('chore', (payload)=> {
+    console.log("I have to do this task: ", payload);
+    socketConnection.emit('received', payload.id);
 });
