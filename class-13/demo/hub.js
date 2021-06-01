@@ -1,44 +1,37 @@
 'use strict';
 
-const uuid = require('uuid').v4;
 const io = require('socket.io')(3000);
-// a keyed queue.
-// there will be no order preserved 
-// messages get delivered and removed from here 
-// once they are recieved 
-// Message Queue -> Tasks Queue
-const queue = {
-    chores: {}
+const family = io.of('/family');// namespace
+const uuid = require('uuid').v4;
+
+const queue = {//message queue, will add any new chore, delete the cores once they are recieved.
+    chores: {}// {id, chore}
 }
-const family = io.of('/family'); // namespace
 
 family.on('connection', socket => {
-
-    // custom event that I will create
+    // listen to parent
     socket.on('new_chore', payload => {
-        // add it to the queue
-        console.log("adding a new task to the queue ..")
-        let id = uuid(); // create an id for my task
+        console.log('recieved a chore from parent to the hub');
+        const id = uuid();// create an id for our tasks
         queue.chores[id] = payload;
-        socket.emit('added');//telling the parent that I added its task
-        family.emit('chore', { id: id, data: payload });
-    });
-    // custom event that I will create
-    socket.on('received', payload => {
-        // delete it from the queue
-        // payload is the id passed from child
-        console.log("in hub: child received the task", payload);
-        delete queue.chores[payload];
+        // return a feedback message, that the chore was sent successfully.
+        socket.emit('added_chore');
+        // send the chore to the child
+        // this will emit the chore to the entire family (namespace).
+        // so any connected children will receive the new added chores.
+        family.emit('chore', { id: id, chore: payload });
     });
 
-    socket.on('get_tasks', () => {
+    socket.on('recieved_chore', (id) => {
+        console.log('chore was handled by the child: ', id);
+        delete queue.chores[id];
+    });
+
+    // we are listening to socket, so any new connection
+    // will recieve chores without re-sending the chores to all the family (namespace)
+    socket.on('get_chores', () => {
         Object.keys(queue.chores).forEach(id => {
-            socket.emit('chore', { id, data: queue.chores[id] });
+            socket.emit('chore', { id, chore: queue.chores[id] });
         });
     });
-
-    socket.on('get_queue', () => {
-        console.log('queue', queue);
-    });
-
 });

@@ -1,20 +1,12 @@
 'use strict';
 
-const client = require('socket.io-client');
-const socketConnection = client.connect('http://localhost:3000/family');
+const io = require('socket.io-client');
+const socketConnection = io.connect('http://localhost:3000/family');
 
-const chores = ['water the flowers :D'];
+const chore = 'Clear your room >:(';
 
-chores.forEach(chore=> {
-    socketConnection.emit('new_chore', chore);
-});
+socketConnection.emit('new_chore', chore);
 
-socketConnection.on('added', (payload)=> {
-    console.log("Thank you !!")
-});
-
-
-// created for testing only
-socketConnection.on('chore', (payload)=> {
-    console.log("parent chore")
+socketConnection.on('added_chore', () => {
+    console.log('the chore was recieved from the hub');
 });
