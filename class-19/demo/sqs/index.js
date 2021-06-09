@@ -1,7 +1,7 @@
 const { Consumer } = require('sqs-consumer');
  
 const app = Consumer.create({
-  queueUrl: 'https://sqs.us-east-1.amazonaws.com/104801677433/AAAQ',
+  queueUrl: 'https://sqs.us-east-1.amazonaws.com/104801677433/js401d9-sqs',
   handleMessage: async (message) => {
     // do some work with `message`
     console.log(message);
